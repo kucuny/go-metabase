@@ -31,16 +31,16 @@ import "github.com/kucuny/go-metabase/metabase"
   - [ ] PUT /api/card/:id
 
 - [ ] Dashboard
-  - [ ]DELETE /api/dashboard/:id
-  - [ ]DELETE /api/dashboard/:id/cards
-  - [ ]GET /api/dashboard/
-  - [ ]GET /api/dashboard/:id
-  - [ ]GET /api/dashboard/:id/revisions
-  - [ ]POST /api/dashboard/
-  - [ ]POST /api/dashboard/:id/cards
-  - [ ]POST /api/dashboard/:id/revert
-  - [ ]PUT /api/dashboard/:id
-  - [ ]PUT /api/dashboard/:id/cards
+  - [ ] DELETE /api/dashboard/:id
+  - [ ] DELETE /api/dashboard/:id/cards
+  - [ ] GET /api/dashboard/
+  - [ ] GET /api/dashboard/:id
+  - [ ] GET /api/dashboard/:id/revisions
+  - [ ] POST /api/dashboard/
+  - [ ] POST /api/dashboard/:id/cards
+  - [ ] POST /api/dashboard/:id/revert
+  - [ ] PUT /api/dashboard/:id
+  - [ ] PUT /api/dashboard/:id/cards
 
 - [ ] Database
   - [ ] DELETE /api/database/:id
