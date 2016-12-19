@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/kucuny/go-metabase"
+	"github.com/kucuny/go-metabase/metabase"
 )
 
 func main() {
