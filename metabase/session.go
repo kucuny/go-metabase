@@ -1,45 +1,25 @@
 package metabase
 
-import (
-	"encoding/json"
-	"io/ioutil"
-	"log"
-	"net/http"
-)
-
-type Session struct{}
-
-type SessionInfo struct {
-	email      string `json:"email",omitempty`
-	password   string `json:"password",omitempty`
-	sessionKey string `json:"id",omitempty`
+type SessionComponent struct{
+	client *Client
 }
 
-func (s *Session) GetSessionKey(email, password string) (string, error) {
-	req := makeRequest(http.MethodPost, "session")
-	payload := SessionInfo{
-		email:    email,
-		password: password,
+type SessionKey struct {
+	ID string `json:"id"`
+}
+
+func (s *SessionComponent) GetSessionKey(email, password string) (string, error) {
+	req, err := s.client.NewRequest(requestPost, "/api/session", client.Auth)
+	if err != nil {
+		return "", err
 	}
-	req.Body, _ = json.Marshal(payload)
 
-	client := &http.Client{}
-
-	response, err := client.Do(req)
+	var key *SessionKey
+	response, err := client.Do(req, key)
 
 	if err != nil {
-		log.Fatalln(err)
+		return "", err
 	}
 
-	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
-
-	result := new(SessionInfo)
-	result, err := json.Unmarshal(data, result)
-
-	return result.sessionKey, err
-}
-
-func (s *Session) DeleteSessionKey() error {
-	req := makeRequest(http.MethodDelete, "session")
+	return key.ID, nil
 }

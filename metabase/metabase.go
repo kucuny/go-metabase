@@ -3,86 +3,132 @@ package metabase
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
+	"io"
 )
 
 const (
 	headerMetabaseSession string = "X-Metabase-Session"
 	defaultContentType    string = "application/json"
+	defaultUserAgent      string = "go-metabase"
+
+	requestGet    string = http.MethodGet
+	requestPost   string = http.MethodPost
+	requestPut    string = http.MethodPut
+	requestPatch  string = http.MethodPatch
+	requestDelete string = http.MethodDelete
+	requestHead   string = http.MethodHead
 )
 
 type Auth struct {
-	baseUrl    *url.URL
-	email      string `json:"email"`
-	password   string `json:"password"`
+	baseUrl *url.URL
+
+	email    string `json:"email"`
+	password string `json:"password"`
+
 	sessionKey string
 }
 
 type ApiComponent struct {
-	activity       *Activity
-	card           *Card
-	dashboard      *Dashboard
-	database       *Database
-	dataset        *Dataset
-	email          *Email
-	field          *Field
-	geojson        *Geojson
-	gettingStarted *GettingStarted
-	label          *Label
-	metric         *Metric
-	notify         *Notify
-	permission     *Permission
-	pulse          *Pulse
-	revision       *Revision
-	segment        *Segment
-	session        *Session
-	setting        *Setting
-	setup          *Setup
-	slack          *Slack
-	table          *Table
-	tiles          *Tiles
-	user           *User
-	util           *Util
+	// Activity       *ActivityComponent
+	// Card           *CardComponent
+	// Dashboard      *DashboardComponent
+	// Database       *DatabaseComponent
+	// Dataset        *DatasetComponent
+	// Email          *EmailComponent
+	// Field          *FieldComponent
+	// Geojson        *GeojsonComponent
+	// GettingStarted *GettingStartedComponent
+	// Label          *LabelComponent
+	// Metric         *MetricComponent
+	// Notify         *NotifyComponent
+	// Permission     *PermissionComponent
+	// Pulse          *PulseComponent
+	// Revision       *RevisionComponent
+	// Segment        *SegmentComponent
+	Session *SessionComponent
+	// Setting        *SettingComponent
+	// Setup          *SetupComponent
+	// Slack          *SlackComponent
+	// Table          *TableComponent
+	// Tiles          *TilesComponent
+	// User           *UserComponent
+	// Util           *UtilComponent
+}
+
+type Client struct {
+	client  *http.Client
+	BaseUrl *url.URL
+
+	*Auth
 }
 
 type Metabase struct {
-	client  *http.Client
-	BaseUrl *url.URL
-	Auth
-	ApiComponent
+	Client *Client
+	*ApiComponent
 }
 
-func NewMetabase(baseUrl, sessionKey string) *Metabase {
-	return &Metabase{
-		client:  &http.Client{},
-		BaseUrl: url.Parse(baseUrl),
-		Auth: Auth{
+func newClient(baseUrl, sessionKey string) *Client {
+	base, err := url.Parse(baseUrl)
+	if err != nil {
+		return nil
+	}
+
+	return &Client{
+		client:  http.DefaultClient,
+		BaseUrl: base,
+		Auth: &Auth{
 			sessionKey: sessionKey,
 		},
 	}
 }
 
-func (m *Metabase) SetAuth(email, password string) {
-	m.Auth.email = email
-	m.Auth.password = password
+func NewMetabase(baseUrl, sessionKey string) *Metabase {
+	client := newClient(baseUrl, sessionKey)
+	metabaseClient := &Metabase{
+		Client:  client,
+		ApiComponent: &ApiComponent{
+			Session: &SessionComponent{client: client},
+		},
+	}
+
+	return metabaseClient
 }
 
-func (m *Metabase) makeRequest(method, urlStr string, body interface{}) *http.Request {
+func (m *Metabase) SetAuth(email, password string) {
+	m.Client.Auth.email = email
+	m.Client.Auth.password = password
+}
+
+func (m *Metabase) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
 	rel, err := url.Parse(urlStr)
-
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	header := DefaultHeader
-	header.Add(headerMetabaseSession, m.sessionKey)
+	u := m.Client.BaseUrl.ResolveReference(rel)
 
-	return &http.Request{
-		Method: method,
-		URL:    rel,
-		Header: header,
-		Body:   body,
+	var buf io.ReadWriter
+	if body != nil {
+		buf = new(bytes.Buffer)
+		err := json.NewEncoder(buf).Encode(body)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	req, err := http.NewRequest(method, u.String(), buf)
+	if err != nil {
+		return nil, err
+	}
+
+	if body != nil {
+		req.Header.Set("Content-Type", defaultContentType)
+	}
+
+	req.Header.Set("User-Agent", defaultUserAgent)
+	req.Header.Set(headerMetabaseSession, m.Client.Auth.sessionKey)
+
+	return req, nil
 }
