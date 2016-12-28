@@ -134,10 +134,10 @@ import "github.com/kucuny/go-metabase/metabase"
   - [ ] PUT /api/segment/:id
 
 - [ ] Session
-  - [o] DELETE /api/session/
+  - [x] DELETE /api/session/
   - [ ] GET /api/session/password_reset_token_valid
   - [ ] GET /api/session/properties
-  - [o] POST /api/session/
+  - [x] POST /api/session/
   - [ ] POST /api/session/forgot_password
   - [ ] POST /api/session/google_auth
   - [ ] POST /api/session/reset_password
