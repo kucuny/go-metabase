@@ -22,15 +22,13 @@ const (
 )
 
 type Auth struct {
-	baseUrl *url.URL
+	Email    string `json:"email,omitempty"`
+	Password string `json:"password,omitempty"`
 
-	email    string `json:"email"`
-	password string `json:"password"`
-
-	sessionKey string
+	SessionKey string `json:"id,omitempty"`
 }
 
-type ApiComponent struct {
+type ApiComponents struct {
 	// Activity       *ActivityComponent
 	// Card           *CardComponent
 	// Dashboard      *DashboardComponent
@@ -65,54 +63,68 @@ type Client struct {
 }
 
 type Metabase struct {
-	Client *Client
-	*ApiComponent
+	client *Client
+	*ApiComponents
 }
 
-func newClient(baseUrl, sessionKey string) *Client {
-	base, err := url.Parse(baseUrl)
+type HttpResponse struct {
+	Response *http.Response
+	Err      error
+}
+
+func newClient(baseUrl, sessionKey string) (*Client, error) {
+	parsedBaseUrl, err := url.Parse(baseUrl)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	return &Client{
 		client:  http.DefaultClient,
-		BaseUrl: base,
+		BaseUrl: parsedBaseUrl,
 		Auth: &Auth{
-			sessionKey: sessionKey,
+			SessionKey: sessionKey,
 		},
-	}
+	}, nil
 }
 
-func NewMetabase(baseUrl, sessionKey string) *Metabase {
-	client := newClient(baseUrl, sessionKey)
+func NewMetabase(baseUrl, sessionKey string) (*Metabase, error) {
+	client, err := newClient(baseUrl, sessionKey)
+
+	if err != nil {
+		return nil, err
+	}
+
 	metabaseClient := &Metabase{
-		Client:  client,
-		ApiComponent: &ApiComponent{
-			Session: &SessionComponent{client: client},
+		client:  client,
+		ApiComponents: &ApiComponents{
+			Session: &SessionComponent{c: client},
 		},
 	}
 
-	return metabaseClient
+	return metabaseClient, nil
 }
 
 func (m *Metabase) SetAuth(email, password string) {
-	m.Client.Auth.email = email
-	m.Client.Auth.password = password
+	m.client.Auth.Email = email
+	m.client.Auth.Password = password
 }
 
-func (m *Metabase) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
+func (m *Metabase) SetSessionKey(sessionKey string) {
+	m.client.Auth.SessionKey = sessionKey
+}
+
+func (c *Client) NewRequest(method, urlStr string, v interface{}) (*http.Request, error) {
 	rel, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
 
-	u := m.Client.BaseUrl.ResolveReference(rel)
+	u := c.BaseUrl.ResolveReference(rel)
 
 	var buf io.ReadWriter
-	if body != nil {
+	if v != nil {
 		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
+		err := json.NewEncoder(buf).Encode(v)
 		if err != nil {
 			return nil, err
 		}
@@ -123,12 +135,35 @@ func (m *Metabase) NewRequest(method, urlStr string, body interface{}) (*http.Re
 		return nil, err
 	}
 
-	if body != nil {
+	if v != nil {
 		req.Header.Set("Content-Type", defaultContentType)
 	}
 
 	req.Header.Set("User-Agent", defaultUserAgent)
-	req.Header.Set(headerMetabaseSession, m.Client.Auth.sessionKey)
+
+	req.Header.Set(headerMetabaseSession, c.Auth.SessionKey)
 
 	return req, nil
+}
+
+func (c *Client) Do(req *http.Request, v interface{}) (*HttpResponse) {
+	resp, err := c.client.Do(req)
+
+	response := &HttpResponse{
+		Response: resp,
+		Err:      err,
+	}
+
+	if response.Err != nil {
+		return response
+	}
+
+	defer response.Response.Body.Close()
+
+	if v != nil {
+		err = json.NewDecoder(response.Response.Body).Decode(v)
+		response.Err = err
+	}
+
+	return response
 }

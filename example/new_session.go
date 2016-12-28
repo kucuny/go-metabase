@@ -6,7 +6,11 @@ import (
 )
 
 func main() {
-	client := metabase.NewMetabase("http://localhost:3000", "")
+	client, _ := metabase.NewMetabase("http://localhost:3001", "331e95d8-c334-4ffd-ace9-066987c94610")
 	client.SetAuth("kucuny@gmail.com", "qwer1234")
-	fmt.Println(client.Session.GetSessionKey())
+	sessionKey, resp := client.Session.GetSessionKey()
+    fmt.Println(sessionKey, resp)
+
+    client.SetSessionKey(sessionKey.ID)
+    fmt.Println(client.Session.DeleteSessionKey())
 }
