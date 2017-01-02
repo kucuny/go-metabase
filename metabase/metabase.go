@@ -67,9 +67,10 @@ type Metabase struct {
 	*ApiComponents
 }
 
-type HttpResponse struct {
+type Response struct {
 	Response *http.Response
 	Err      error
+	Payload  interface{}
 }
 
 func newClient(baseUrl, sessionKey string) (*Client, error) {
@@ -135,35 +136,42 @@ func (c *Client) NewRequest(method, urlStr string, v interface{}) (*http.Request
 		return nil, err
 	}
 
+	req.Header.Set("User-Agent", defaultUserAgent)
+
 	if v != nil {
 		req.Header.Set("Content-Type", defaultContentType)
 	}
 
-	req.Header.Set("User-Agent", defaultUserAgent)
-
-	req.Header.Set(headerMetabaseSession, c.Auth.SessionKey)
+	if c.Auth.SessionKey != "" {
+		req.Header.Set(headerMetabaseSession, c.Auth.SessionKey)
+	}
 
 	return req, nil
 }
 
-func (c *Client) Do(req *http.Request, v interface{}) (*HttpResponse) {
+func (c *Client) Do(req *http.Request, payload interface{}) (*Response) {
 	resp, err := c.client.Do(req)
 
-	response := &HttpResponse{
+	resultResponse := &Response{
 		Response: resp,
 		Err:      err,
+		Payload:  payload,
 	}
 
-	if response.Err != nil {
-		return response
+	if resultResponse.Err != nil {
+		return resultResponse
 	}
 
-	defer response.Response.Body.Close()
+	defer resultResponse.Response.Body.Close()
 
-	if v != nil {
-		err = json.NewDecoder(response.Response.Body).Decode(v)
-		response.Err = err
+	if resultResponse.Payload != nil {
+		err = json.NewDecoder(resultResponse.Response.Body).Decode(resultResponse.Payload)
+		if err == io.EOF {
+			resultResponse.Err = nil
+		} else {
+			resultResponse.Err = err
+		}
 	}
 
-	return response
+	return resultResponse
 }
