@@ -3,9 +3,9 @@ package metabase
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
-	"io"
 )
 
 const (
@@ -73,30 +73,30 @@ type Response struct {
 	Payload  interface{}
 }
 
-func newClient(baseUrl, sessionKey string) (*Client, error) {
-	parsedBaseUrl, err := url.Parse(baseUrl)
+func newClient(baseURL, sessionKey string) (*Client, error) {
+	parsedBaseURL, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Client{
 		client:  http.DefaultClient,
-		BaseUrl: parsedBaseUrl,
+		BaseUrl: parsedBaseURL,
 		Auth: &Auth{
 			SessionKey: sessionKey,
 		},
 	}, nil
 }
 
-func NewMetabase(baseUrl, sessionKey string) (*Metabase, error) {
-	client, err := newClient(baseUrl, sessionKey)
+func NewMetabase(baseURL, sessionKey string) (*Metabase, error) {
+	client, err := newClient(baseURL, sessionKey)
 
 	if err != nil {
 		return nil, err
 	}
 
 	metabaseClient := &Metabase{
-		client:  client,
+		client: client,
 		ApiComponents: &ApiComponents{
 			Session: &SessionComponent{c: client},
 		},
@@ -149,7 +149,7 @@ func (c *Client) NewRequest(method, urlStr string, v interface{}) (*http.Request
 	return req, nil
 }
 
-func (c *Client) Do(req *http.Request, payload interface{}) (*Response) {
+func (c *Client) Do(req *http.Request, payload interface{}) *Response {
 	resp, err := c.client.Do(req)
 
 	resultResponse := &Response{
@@ -171,6 +171,7 @@ func (c *Client) Do(req *http.Request, payload interface{}) (*Response) {
 		} else {
 			resultResponse.Err = err
 		}
+
 	}
 
 	return resultResponse

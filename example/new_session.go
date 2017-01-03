@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/kucuny/go-metabase/metabase"
+    "reflect"
 )
 
 func main() {
@@ -12,5 +13,9 @@ func main() {
     fmt.Println(sessionKey, resp)
 
     client.SetSessionKey(sessionKey.ID)
-    fmt.Println(client.Session.DeleteSessionKey())
+    response := client.Session.DeleteSessionKey()
+    fmt.Println(response.Payload.(*value.Type()).ID)
+
+    value := reflect.ValueOf(response.Payload)
+    fmt.Println(value.Type())
 }
