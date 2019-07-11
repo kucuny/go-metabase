@@ -1,4 +1,6 @@
 # go-metabase
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkucuny%2Fgo-metabase.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkucuny%2Fgo-metabase?ref=badge_shield)
+
 Metabase API Client for Golang
 
 ## Installation
@@ -183,3 +185,7 @@ import "github.com/kucuny/go-metabase/metabase"
 
 ## References
 Metabase - https://github.com/metabase/metabase/blob/master/docs/api-documentation.md
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkucuny%2Fgo-metabase.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkucuny%2Fgo-metabase?ref=badge_large)
