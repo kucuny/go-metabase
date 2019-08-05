@@ -11,7 +11,7 @@ go get github.com/kucuny/go-metabase/metabase
 import "github.com/kucuny/go-metabase/metabase"
 ```
 
-## Features (v0.22.0)
+## Features (v0.32.10)
 
 - [ ] Activity
   - [ ] GET /api/activity/
@@ -146,7 +146,7 @@ import "github.com/kucuny/go-metabase/metabase"
   - [ ] GET /api/setting/
   - [ ] GET /api/setting/:key
   - [ ] PUT /api/setting/:key
-  
+
 - [ ] Setup
   - [ ] GET /api/setup/admin_checklist
   - [ ] POST /api/setup/

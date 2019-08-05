@@ -22,10 +22,10 @@ const (
 )
 
 type Auth struct {
-	Email    string `json:"email,omitempty"`
+	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
 
-	SessionKey string `json:"id,omitempty"`
+	SessionID string `json:"id,omitempty"`
 }
 
 type ApiComponents struct {
@@ -83,13 +83,13 @@ func newClient(baseURL, sessionKey string) (*Client, error) {
 		client:  http.DefaultClient,
 		BaseUrl: parsedBaseURL,
 		Auth: &Auth{
-			SessionKey: sessionKey,
+			SessionID: sessionKey,
 		},
 	}, nil
 }
 
-func NewMetabase(baseURL, sessionKey string) (*Metabase, error) {
-	client, err := newClient(baseURL, sessionKey)
+func NewMetabase(baseURL, sessionID string) (*Metabase, error) {
+	client, err := newClient(baseURL, sessionID)
 
 	if err != nil {
 		return nil, err
@@ -105,17 +105,17 @@ func NewMetabase(baseURL, sessionKey string) (*Metabase, error) {
 	return metabaseClient, nil
 }
 
-func (m *Metabase) SetAuth(email, password string) {
-	m.client.Auth.Email = email
+func (m *Metabase) SetAuth(username, password string) {
+	m.client.Auth.Username = username
 	m.client.Auth.Password = password
 }
 
-func (m *Metabase) SetSessionKey(sessionKey string) {
-	m.client.Auth.SessionKey = sessionKey
+func (m *Metabase) SetSessionID(sessionID string) {
+	m.client.Auth.SessionID = sessionID
 }
 
-func (c *Client) NewRequest(method, urlStr string, v interface{}) (*http.Request, error) {
-	rel, err := url.Parse(urlStr)
+func (c *Client) NewRequest(method, path string, v interface{}) (*http.Request, error) {
+	rel, err := url.Parse(path)
 	if err != nil {
 		return nil, err
 	}
@@ -142,8 +142,8 @@ func (c *Client) NewRequest(method, urlStr string, v interface{}) (*http.Request
 		req.Header.Set("Content-Type", defaultContentType)
 	}
 
-	if c.Auth.SessionKey != "" {
-		req.Header.Set(headerMetabaseSession, c.Auth.SessionKey)
+	if c.Auth.SessionID != "" {
+		req.Header.Set(headerMetabaseSession, c.Auth.SessionID)
 	}
 
 	return req, nil

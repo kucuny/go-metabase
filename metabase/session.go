@@ -4,22 +4,22 @@ import (
 	"fmt"
 )
 
-type SessionComponent struct{
+type SessionComponent struct {
 	c *Client
 }
 
-type SessionKey struct {
+type SessionID struct {
 	ID string `json:"id",json:"session_id"`
 }
 
-func (com *SessionComponent) GetSessionKey() (*SessionKey, *Response) {
+func (com *SessionComponent) GetSessionID() (*SessionID, *Response) {
 	req, err := com.c.NewRequest(requestPost, "/api/session", com.c.Auth)
 
 	if err != nil {
 		return nil, &Response{Response: nil, Err: err}
 	}
 
-	sessionKey := new(SessionKey)
+	sessionKey := new(SessionID)
 	resp := com.c.Do(req, sessionKey)
 
 	if resp.Err != nil {
@@ -29,15 +29,15 @@ func (com *SessionComponent) GetSessionKey() (*SessionKey, *Response) {
 	return sessionKey, resp
 }
 
-func (com *SessionComponent) DeleteSessionKey() *Response {
-	url := fmt.Sprintf("/api/session/?session_id=%s", com.c.Auth.SessionKey)
+func (com *SessionComponent) DeleteSessionID() *Response {
+	url := fmt.Sprintf("/api/session/?session_id=%s", com.c.Auth.SessionID)
 	req, err := com.c.NewRequest(requestDelete, url, nil)
 
 	if err != nil {
 		return &Response{Response: nil, Err: err}
 	}
 
-	sessionKey := new(SessionKey)
+	sessionKey := new(SessionID)
 	resp := com.c.Do(req, sessionKey)
 
 	if resp.Err != nil {
